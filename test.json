@@ -1,0 +1,37 @@
+{
+    "type": "default",
+    "status": 404,
+    "ok": false,
+    "statusText": "",
+    "headers": {
+        "map": {
+            "access-control-allow-credentials": "true",
+            "access-control-allow-origin": "http://localhost:3000",
+            "content-length": "48",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 05 Jun 2025 23:41:47 GMT",
+            "etag": "W/\"30-9wbpGcxkVo3UMoBz5oC33erduTc\"",
+            "ngrok-agent-ips": "102.212.236.20",
+            "vary": "Origin",
+            "x-powered-by": "Express"
+        }
+    },
+    "url": "https://mutually-factual-weevil.ngrok-free.app/memories/redeem",
+    "bodyUsed": false,
+    "_bodyInit": {
+        "_data": {
+            "size": 48,
+            "offset": 0,
+            "blobId": "6ff70900-6561-44d5-b9b1-04c635d88b81",
+            "__collector": {}
+        }
+    },
+    "_bodyBlob": {
+        "_data": {
+            "size": 48,
+            "offset": 0,
+            "blobId": "6ff70900-6561-44d5-b9b1-04c635d88b81",
+            "__collector": {}
+        }
+    }
+}

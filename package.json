@@ -1,0 +1,43 @@
+{
+  "name": "crefy-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "deploy": "pm2 start server.js --name crefy-phygitals-backend --instances 2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@thirdweb-dev/sdk": "^4.0.99",
+    "cloudinary": "^2.6.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "ethers": "^6.14.3",
+    "express": "^5.1.0",
+    "http": "0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.0",
+    "multer": "^2.0.0",
+    "multer-storage-cloudinary": "^4.0.0",
+    "nodemon": "^3.1.10",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.1",
+    "thirdweb": "^5.102.3",
+    "twilio": "^5.6.1",
+    "wagmi": "^2.15.4",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "swagger-ui-express": "^4.6.3",
+    "swagger-jsdoc": "^6.2.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.21",
+    "typescript": "^5.8.3"
+  }
+}

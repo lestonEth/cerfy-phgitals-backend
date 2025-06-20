@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethereum Contract API Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .contract-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .function-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .function-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .function-type {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .write {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .read {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .param-item {
+            margin-bottom: 8px;
+        }
+
+        .param-name {
+            font-weight: bold;
+        }
+
+        .param-type {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .test-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .result-area {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            min-height: 50px;
+        }
+
+        .tab-content {
+            padding: 15px;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .nav-tabs {
+            margin-bottom: 0;
+        }
+
+        .state-mutability {
+            font-style: italic;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mb-4">Ethereum Contract API Documentation</h1>
+
+        <div class="contract-info">
+            <h3>Contract Information</h3>
+            <div class="mb-2"><strong>Contract Address:</strong> <span id="contractAddress"
+                    class="font-monospace">Loading...</span></div>
+            <div class="mb-2"><strong>Network:</strong> <span id="networkInfo">Not connected</span></div>
+            <div class="mb-2"><strong>Connected Wallet:</strong> <span id="walletAddress">Not connected</span></div>
+            <button id="connectWallet" class="btn btn-primary btn-sm">Connect Wallet</button>
+        </div>
+
+        <ul class="nav nav-tabs" id="contractTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="read-tab" data-bs-toggle="tab" data-bs-target="#read-functions"
+                    type="button" role="tab">Read Functions</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="write-tab" data-bs-toggle="tab" data-bs-target="#write-functions"
+                    type="button" role="tab">Write Functions</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="contractTabsContent">
+            <div class="tab-pane fade show active" id="read-functions" role="tabpanel">
+                <h4>Read Functions (View)</h4>
+                <p>These functions don't require gas as they only read data from the blockchain.</p>
+
+                <div id="readFunctionsContainer">
+                    <!-- Read functions will be populated here by JavaScript -->
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="write-functions" role="tabpanel">
+                <h4>Write Functions</h4>
+                <p>These functions modify the blockchain state and require gas to execute.</p>
+
+                <div id="writeFunctionsContainer">
+                    <!-- Write functions will be populated here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <script>
+        // Contract ABI and Address (from your contract.js)
+        const CONTRACT_ABI = [
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "to",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "approve",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "burn",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [],
+                stateMutability: "nonpayable",
+                type: "constructor",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "sender",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "address",
+                        name: "owner",
+                        type: "address",
+                    },
+                ],
+                name: "ERC721IncorrectOwner",
+                type: "error",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "operator",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "ERC721InsufficientApproval",
+                type: "error",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "approver",
+                        type: "address",
+                    },
+                ],
+                name: "ERC721InvalidApprover",
+                type: "error",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "operator",
+                        type: "address",
+                    },
+                ],
+                name: "ERC721InvalidOperator",
+                type: "error",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "owner",
+                        type: "address",
+                    },
+                ],
+                name: "ERC721InvalidOwner",
+                type: "error",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "receiver",
+                        type: "address",
+                    },
+                ],
+                name: "ERC721InvalidReceiver",
+                type: "error",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "sender",
+                        type: "address",
+                    },
+                ],
+                name: "ERC721InvalidSender",
+                type: "error",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "ERC721NonexistentToken",
+                type: "error",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "owner",
+                        type: "address",
+                    },
+                ],
+                name: "OwnableInvalidOwner",
+                type: "error",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "account",
+                        type: "address",
+                    },
+                ],
+                name: "OwnableUnauthorizedAccount",
+                type: "error",
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        indexed: true,
+                        internalType: "address",
+                        name: "owner",
+                        type: "address",
+                    },
+                    {
+                        indexed: true,
+                        internalType: "address",
+                        name: "approved",
+                        type: "address",
+                    },
+                    {
+                        indexed: true,
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "Approval",
+                type: "event",
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        indexed: true,
+                        internalType: "address",
+                        name: "owner",
+                        type: "address",
+                    },
+                    {
+                        indexed: true,
+                        internalType: "address",
+                        name: "operator",
+                        type: "address",
+                    },
+                    {
+                        indexed: false,
+                        internalType: "bool",
+                        name: "approved",
+                        type: "bool",
+                    },
+                ],
+                name: "ApprovalForAll",
+                type: "event",
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        indexed: false,
+                        internalType: "uint256",
+                        name: "_fromTokenId",
+                        type: "uint256",
+                    },
+                    {
+                        indexed: false,
+                        internalType: "uint256",
+                        name: "_toTokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "BatchMetadataUpdate",
+                type: "event",
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        indexed: false,
+                        internalType: "uint256",
+                        name: "_tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "MetadataUpdate",
+                type: "event",
+            },
+            {
+                inputs: [],
+                name: "mintFromContract",
+                outputs: [
+                    {
+                        internalType: "uint256",
+                        name: "",
+                        type: "uint256",
+                    },
+                ],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        indexed: true,
+                        internalType: "address",
+                        name: "previousOwner",
+                        type: "address",
+                    },
+                    {
+                        indexed: true,
+                        internalType: "address",
+                        name: "newOwner",
+                        type: "address",
+                    },
+                ],
+                name: "OwnershipTransferred",
+                type: "event",
+            },
+            {
+                inputs: [],
+                name: "renounceOwnership",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "minter",
+                        type: "address",
+                    },
+                ],
+                name: "resetMintCount",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "from",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "to",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "safeTransferFrom",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "from",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "to",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "bytes",
+                        name: "data",
+                        type: "bytes",
+                    },
+                ],
+                name: "safeTransferFrom",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "operator",
+                        type: "address",
+                    },
+                    {
+                        internalType: "bool",
+                        name: "approved",
+                        type: "bool",
+                    },
+                ],
+                name: "setApprovalForAll",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "uint256",
+                        name: "_newLimit",
+                        type: "uint256",
+                    },
+                ],
+                name: "setMintLimit",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "string",
+                        name: "_baseUri",
+                        type: "string",
+                    },
+                ],
+                name: "setUri",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                anonymous: false,
+                inputs: [
+                    {
+                        indexed: true,
+                        internalType: "address",
+                        name: "from",
+                        type: "address",
+                    },
+                    {
+                        indexed: true,
+                        internalType: "address",
+                        name: "to",
+                        type: "address",
+                    },
+                    {
+                        indexed: true,
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "Transfer",
+                type: "event",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "from",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "to",
+                        type: "address",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "transferFrom",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "newOwner",
+                        type: "address",
+                    },
+                ],
+                name: "transferOwnership",
+                outputs: [],
+                stateMutability: "nonpayable",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "owner",
+                        type: "address",
+                    },
+                ],
+                name: "balanceOf",
+                outputs: [
+                    {
+                        internalType: "uint256",
+                        name: "",
+                        type: "uint256",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "minter",
+                        type: "address",
+                    },
+                ],
+                name: "checkRateLimit",
+                outputs: [
+                    {
+                        internalType: "uint256",
+                        name: "amt",
+                        type: "uint256",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "_address",
+                        type: "address",
+                    },
+                ],
+                name: "getAddressInfo",
+                outputs: [
+                    {
+                        internalType: "uint256",
+                        name: "currentBalance",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "totalMinted",
+                        type: "uint256",
+                    },
+                    {
+                        internalType: "uint256",
+                        name: "remainingMints",
+                        type: "uint256",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [],
+                name: "getAllMinters",
+                outputs: [
+                    {
+                        internalType: "address[]",
+                        name: "",
+                        type: "address[]",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [],
+                name: "getAllTokenHolders",
+                outputs: [
+                    {
+                        internalType: "address[]",
+                        name: "",
+                        type: "address[]",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "getApproved",
+                outputs: [
+                    {
+                        internalType: "address",
+                        name: "",
+                        type: "address",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "minter",
+                        type: "address",
+                    },
+                ],
+                name: "getMintCount",
+                outputs: [
+                    {
+                        internalType: "uint256",
+                        name: "",
+                        type: "uint256",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "_address",
+                        type: "address",
+                    },
+                ],
+                name: "getNFTBalance",
+                outputs: [
+                    {
+                        internalType: "uint256",
+                        name: "",
+                        type: "uint256",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "_address",
+                        type: "address",
+                    },
+                ],
+                name: "getRemainingMints",
+                outputs: [
+                    {
+                        internalType: "uint256",
+                        name: "",
+                        type: "uint256",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [],
+                name: "getTotalHoldersCount",
+                outputs: [
+                    {
+                        internalType: "uint256",
+                        name: "",
+                        type: "uint256",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "address",
+                        name: "owner",
+                        type: "address",
+                    },
+                    {
+                        internalType: "address",
+                        name: "operator",
+                        type: "address",
+                    },
+                ],
+                name: "isApprovedForAll",
+                outputs: [
+                    {
+                        internalType: "bool",
+                        name: "",
+                        type: "bool",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [],
+                name: "mintLimit",
+                outputs: [
+                    {
+                        internalType: "uint256",
+                        name: "",
+                        type: "uint256",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [],
+                name: "name",
+                outputs: [
+                    {
+                        internalType: "string",
+                        name: "",
+                        type: "string",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [],
+                name: "owner",
+                outputs: [
+                    {
+                        internalType: "address",
+                        name: "",
+                        type: "address",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "ownerOf",
+                outputs: [
+                    {
+                        internalType: "address",
+                        name: "",
+                        type: "address",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "bytes4",
+                        name: "interfaceId",
+                        type: "bytes4",
+                    },
+                ],
+                name: "supportsInterface",
+                outputs: [
+                    {
+                        internalType: "bool",
+                        name: "",
+                        type: "bool",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [],
+                name: "symbol",
+                outputs: [
+                    {
+                        internalType: "string",
+                        name: "",
+                        type: "string",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+            {
+                inputs: [
+                    {
+                        internalType: "uint256",
+                        name: "tokenId",
+                        type: "uint256",
+                    },
+                ],
+                name: "tokenURI",
+                outputs: [
+                    {
+                        internalType: "string",
+                        name: "",
+                        type: "string",
+                    },
+                ],
+                stateMutability: "view",
+                type: "function",
+            },
+        ]
+
+
+        // Configuration
+        const CONTRACT_ADDRESS = '0xeC37377419d8f38Cfe2cAb368184B015F07Cb149'; // Replace with your contract address or get from env
+
+        // Global variables
+        let web3;
+        let contract;
+        let connectedAccount;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Set contract address
+            document.getElementById('contractAddress').textContent = CONTRACT_ADDRESS;
+
+            // Initialize Web3
+            await initWeb3();
+
+            // Initialize contract
+            initContract();
+
+            // Populate functions
+            populateFunctions();
+
+            // Set up wallet connection
+            document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        });
+
+        // Initialize Web3
+        async function initWeb3() {
+            // Modern dapp browsers
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                try {
+                    // Request account access
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    connectedAccount = accounts[0];
+                    updateWalletInfo();
+                } catch (error) {
+                    console.error("User denied account access");
+                }
+            }
+            // Legacy dapp browsers
+            else if (window.web3) {
+                web3 = new Web3(window.web3.currentProvider);
+            }
+            // Non-dapp browsers
+            else {
+                console.log('Non-Ethereum browser detected. Consider trying MetaMask!');
+                web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID'));
+            }
+
+            // Get network ID
+            if (web3) {
+                const networkId = await web3.eth.net.getId();
+                let networkName;
+                switch (networkId) {
+                    case 1: networkName = 'Ethereum Mainnet'; break;
+                    case 3: networkName = 'Ropsten Testnet'; break;
+                    case 4: networkName = 'Rinkeby Testnet'; break;
+                    case 5: networkName = 'Goerli Testnet'; break;
+                    case 42: networkName = 'Kovan Testnet'; break;
+                    case 137: networkName = 'Polygon Mainnet'; break;
+                    case 80001: networkName = 'Mumbai Testnet'; break;
+                    default: networkName = `Unknown Network (ID: ${networkId})`;
+                }
+                document.getElementById('networkInfo').textContent = networkName;
+            }
+        }
+
+        // Initialize contract
+        function initContract() {
+            if (web3) {
+                contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+            }
+        }
+
+        // Connect wallet
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    connectedAccount = accounts[0];
+                    updateWalletInfo();
+                } catch (error) {
+                    console.error("Error connecting wallet:", error);
+                    alert("Error connecting wallet: " + error.message);
+                }
+            } else {
+                alert("MetaMask or other Web3 provider not detected!");
+            }
+        }
+
+        // Update wallet info display
+        function updateWalletInfo() {
+            if (connectedAccount) {
+                const shortAddress = connectedAccount.substring(0, 6) + '...' + connectedAccount.substring(38);
+                document.getElementById('walletAddress').textContent = shortAddress;
+                document.getElementById('connectWallet').textContent = 'Connected';
+                document.getElementById('connectWallet').classList.remove('btn-primary');
+                document.getElementById('connectWallet').classList.add('btn-success');
+            }
+        }
+
+        // Populate functions in the UI
+        function populateFunctions() {
+            const readContainer = document.getElementById('readFunctionsContainer');
+            const writeContainer = document.getElementById('writeFunctionsContainer');
+
+            CONTRACT_ABI.forEach(item => {
+                if (item.type === 'function') {
+                    const isView = item.stateMutability === 'view' || item.stateMutability === 'pure';
+                    const container = isView ? readContainer : writeContainer;
+
+                    const functionCard = document.createElement('div');
+                    functionCard.className = 'function-card';
+
+                    const functionTypeClass = isView ? 'read' : 'write';
+
+                    functionCard.innerHTML = `
+                        <div class="function-name">
+                            ${item.name}
+                            <span class="function-type ${functionTypeClass}">${isView ? 'read' : 'write'}</span>
+                            <span class="state-mutability">${item.stateMutability}</span>
+                        </div>
+                        
+                        ${item.inputs.length > 0 ? `
+                            <div class="mt-2">
+                                <strong>Parameters:</strong>
+                                <div class="params-container mt-1">
+                                    ${item.inputs.map(input => `
+                                        <div class="param-item">
+                                            <span class="param-name">${input.name}</span>
+                                            <span class="param-type">(${input.type})</span>
+                                            <input type="text" class="form-control form-control-sm param-value" placeholder="${input.type}" data-param="${input.name}" data-type="${input.type}">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : '<div class="mt-2"><em>No parameters</em></div>'}
+                        
+                        ${item.outputs.length > 0 ? `
+                            <div class="mt-2">
+                                <strong>Returns:</strong>
+                                <div>${item.outputs.map(output => `${output.type}${output.name ? ' ' + output.name : ''}`).join(', ')}</div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="test-section">
+                            <button class="btn btn-sm ${isView ? 'btn-primary' : 'btn-warning'} test-function" data-function="${item.name}">
+                                ${isView ? 'Call Function' : 'Send Transaction'}
+                            </button>
+                            <div class="result-area mt-2" id="result-${item.name}"></div>
+                        </div>
+                    `;
+
+                    container.appendChild(functionCard);
+                }
+            });
+
+            // Add event listeners to all test buttons
+            document.querySelectorAll('.test-function').forEach(button => {
+                button.addEventListener('click', function () {
+                    const functionName = this.getAttribute('data-function');
+                    callContractFunction(functionName);
+                });
+            });
+        }
+
+        // Call contract function
+        async function callContractFunction(functionName) {
+            if (!web3 || !contract) {
+                alert("Web3 not initialized. Please make sure you have a Web3 provider like MetaMask.");
+                return;
+            }
+
+            const resultArea = document.getElementById(`result-${functionName}`);
+            resultArea.innerHTML = '<em>Processing...</em>';
+
+            try {
+                // Get function ABI
+                const functionAbi = CONTRACT_ABI.find(item => item.type === 'function' && item.name === functionName);
+                if (!functionAbi) {
+                    throw new Error("Function not found in ABI");
+                }
+
+                // Get parameter values
+                const params = [];
+                const isView = functionAbi.stateMutability === 'view' || functionAbi.stateMutability === 'pure';
+
+                document.querySelectorAll(`#result-${functionName} ~ .params-container .param-value`).forEach(input => {
+                    let value = input.value;
+                    const type = input.getAttribute('data-type');
+
+                    // Convert value based on type
+                    if (type.includes('int')) {
+                        value = parseInt(value) || 0;
+                    } else if (type === 'bool') {
+                        value = Boolean(value);
+                    } else if (type === 'address') {
+                        // Addresses don't need conversion
+                    }
+
+                    if (value !== '') {
+                        params.push(value);
+                    }
+                });
+
+                let result;
+
+                if (isView) {
+                    // Call view function
+                    result = await contract.methods[functionName](...params).call();
+                    displayResult(result, functionName, functionAbi.outputs);
+                } else {
+                    // Send transaction
+                    if (!connectedAccount) {
+                        alert("Please connect your wallet to send transactions");
+                        return;
+                    }
+
+                    const tx = await contract.methods[functionName](...params).send({ from: connectedAccount });
+                    displayResult(tx, functionName);
+                }
+            } catch (error) {
+                console.error("Error calling function:", error);
+                resultArea.innerHTML = `<div class="text-danger"><strong>Error:</strong> ${error.message}</div>`;
+            }
+        }
+
+        // Display result
+        function displayResult(result, functionName, outputs) {
+            const resultArea = document.getElementById(`result-${functionName}`);
+
+            if (typeof result === 'object' && result.transactionHash) {
+                // It's a transaction receipt
+                resultArea.innerHTML = `
+                    <div class="text-success">
+                        <strong>Transaction successful!</strong>
+                        <div>Hash: ${result.transactionHash}</div>
+                        <div>Block: ${result.blockNumber}</div>
+                    </div>
+                `;
+            } else if (Array.isArray(result)) {
+                // Multiple return values
+                resultArea.innerHTML = outputs.map((output, index) => `
+                    <div><strong>${output.name || `[${index}]`}:</strong> ${formatResultValue(result[index], output.type)}</div>
+                `).join('');
+            } else {
+                // Single return value
+                const outputType = outputs && outputs.length > 0 ? outputs[0].type : 'unknown';
+                resultArea.innerHTML = `<div><strong>Result:</strong> ${formatResultValue(result, outputType)}</div>`;
+            }
+        }
+
+        // Format result value based on type
+        function formatResultValue(value, type) {
+            if (type.includes('int')) {
+                return value.toString();
+            } else if (type === 'bool') {
+                return value ? 'true' : 'false';
+            } else if (type === 'address') {
+                return `<span class="font-monospace">${value}</span>`;
+            } else {
+                return value;
+            }
+        }
+    </script>
+</body>
+
+</html>
